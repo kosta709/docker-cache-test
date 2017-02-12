@@ -15,46 +15,38 @@ Vagrant.configure(2) do |config|
   # config.vm.box = "centos/7"
 
   config.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
-  
+  $script = <<SCRIPT
+    curl -sSL https://get.docker.com/ | sh
+    service docker start
+    usermod -aG docker ubuntu
+    docker pull kosta709/docker-cache-test:master
+    su - ubuntu -c "git clone https://github.com/kosta709/docker-cache-test.git"
+SCRIPT
+
   config.vm.define "tst1" do |tst1|
     tst1.vm.box = "ubuntu/xenial64"	
-	tst1.vm.hostname = "tst1"
-	tst1.vm.network :forwarded_port, guest: 22, host: 10022
-	tst1.vm.network :forwarded_port, guest: 8080, host: 18080	
-	tst1.vm.network "private_network", ip: "172.29.1.100"
-    tst1.vm.provider "virtualbox" do |v|	
-		v.name = "tst1-ubuntu"
-		v.memory = 1024
-		v.cpus = 2
+    tst1.vm.hostname = "tst1"
+    tst1.vm.network :forwarded_port, guest: 22, host: 10022
+    tst1.vm.network "private_network", ip: "172.29.1.100"
+    tst1.vm.provider "virtualbox" do |v|
+      v.name = "tst1-ubuntu"
+      v.memory = 1024
     end
+    tst1.vm.provision "shell", inline: $script
   end
 
   config.vm.define "tst2" do |tst2|
     tst2.vm.box = "ubuntu/xenial64"	
-	tst2.vm.hostname = "tst2"
-	tst2.vm.network :forwarded_port, guest: 22, host: 10122	
-	tst2.vm.network "private_network", ip: "172.29.1.101"
-    tst2.vm.provider "virtualbox" do |v|	
-		v.name = "tst2-ubuntu"
-		v.memory = 1024
-		v.cpus = 2
+    tst2.vm.hostname = "tst2"
+    tst2.vm.network :forwarded_port, guest: 22, host: 10122	
+    tst2.vm.network "private_network", ip: "172.29.1.101"
+    tst2.vm.provider "virtualbox" do |v|
+      v.name = "tst2-ubuntu"
+      v.memory = 1024
     end
+    tst2.vm.provision "shell", inline: $script
   end  
 
-
-#  config.vm.define "win1" do |win1|
-#    win1.vm.box = "ferventcoder/win7pro-x64-nocm-lite"	
-#	win1.vm.hostname = "win1"
-#	win1.vm.network :forwarded_port, guest: 3389, host: 10389	
-#	win1.vm.network "private_network", ip: "172.29.1.111"
-#	win1.vm.communicator = "winrm"
-#    win1.vm.provider "virtualbox" do |v|	
-#		v.name = "win1-windows7"
-#		v.memory = 1024
-#		v.cpus = 2
-#    end
-#  end    
-  
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
